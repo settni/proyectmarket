@@ -12,6 +12,15 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MarketPlaces">
         <activity
+            android:name=".ItemMensajeActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ChatActivity"
+            android:exported="false" />
+        <activity
+            android:name=".AnunciosActivity"
+            android:exported="false" />
+        <activity
             android:name=".CuentaActivity"
             android:exported="false" />
         <activity
