@@ -7,6 +7,7 @@ import androidx.appcompat.widget.Toolbar;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.MenuItem;
+import android.widget.ImageButton;
 import android.widget.Toast;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
@@ -25,24 +26,22 @@ public class AnunciosActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_anuncios);
 
-        // 1. Configurar Toolbar
-        Toolbar toolbar = findViewById(R.id.toolbar_anuncios);
-        setSupportActionBar(toolbar);
-
-        // 2. Inicializar Vistas
+        // 1. Inicializar Vistas
         recyclerView = findViewById(R.id.rv_mis_productos);
-        bottomNav = findViewById(R.id.bottom_navigation_view);
 
-        // 3. Configuración del RecyclerView y carga de productos de prueba
+        // 2. Configuración del RecyclerView y carga de productos de prueba
         configurarRecyclerView();
 
-        // 4. Configuración del Listener de la barra de navegación (CLAVE)
-        configurarNavegacionInferior();
+        // 3. Configuracion cabecera
+        configurarCabecera();
+
+
     }
 
     private void configurarRecyclerView() {
         // Usa los mismos productos de prueba que en Home.java
         List<Producto> productosDePrueba = cargarProductosDePrueba();
+
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         ProductoAdapter productoAdapter = new ProductoAdapter(this, productosDePrueba);
         recyclerView.setAdapter(productoAdapter);
@@ -51,7 +50,7 @@ public class AnunciosActivity extends AppCompatActivity {
     /**
      * Define la lógica de navegación para la barra inferior en esta Activity.
      */
-    private void configurarNavegacionInferior() {
+    /*private void configurarNavegacionInferior() {
         // Marcar el ítem 'Anuncios' como seleccionado al cargar la Activity
         MenuItem anunciosItem = bottomNav.getMenu().findItem(R.id.navigation_ads);
         if (anunciosItem != null) {
@@ -63,7 +62,7 @@ public class AnunciosActivity extends AppCompatActivity {
             Intent intent;
 
             if (itemId == R.id.navigation_home) { // Ir a Home
-                intent = new Intent(AnunciosActivity.this, HomeActivity.class);
+                intent = new Intent(AnunciosActivity.this, Home.class);
                 intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
                 startActivity(intent);
                 finish();
@@ -81,7 +80,7 @@ public class AnunciosActivity extends AppCompatActivity {
             Toast.makeText(AnunciosActivity.this, "Navegando a: " + item.getTitle(), Toast.LENGTH_SHORT).show();
             return true;
         });
-    }
+    }*/
 
     /**
      * Carga los datos de prueba (igual que en Home.java).
@@ -100,6 +99,11 @@ public class AnunciosActivity extends AppCompatActivity {
         lista.add(new Producto("ID009", "Zapatillas Deportivas", "Para correr, talla 42.", "35.000", "url_ficticia_9"));
 
         return lista;
+    }
+    private void configurarCabecera() {
+        // Listener para el botón de retroceso (flecha <- )
+        ImageButton btnBack = findViewById(R.id.btnBack);
+        btnBack.setOnClickListener(v -> finish());
     }
 }
 
