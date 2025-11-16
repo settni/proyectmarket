@@ -11,8 +11,8 @@ import android.widget.ImageButton;
 import android.widget.Toast;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
-import com.example.proyectmarket.adapter.ProductoAdapter;
-import com.example.proyectmarket.model.Producto;
+import com.diegodev.marketplace.adapter.ProductoAdapter;
+import com.diegodev.marketplace.model.Producto;
 import java.util.ArrayList;
 import java.util.List;
 

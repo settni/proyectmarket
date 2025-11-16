@@ -9,8 +9,8 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.proyectmarket.adapter.MensajeAdapter;
-import com.example.proyectmarket.model.Mensaje;
+import com.diegodev.marketplace.adapter.MensajeAdapter;
+import com.diegodev.marketplace.model.Mensaje;
 
 import java.util.ArrayList;
 import java.util.List;
