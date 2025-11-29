@@ -42,6 +42,7 @@ dependencies {
     implementation(libs.constraintlayout)
     implementation("androidx.recyclerview:recyclerview:1.3.2")
     implementation("androidx.cardview:cardview:1.0.0")
+    implementation("com.google.firebase:firebase-firestore:24.11.1")
 
     // -- CONFIGURACIÓN DE FIREBASE (USANDO BOM) --
     // Importa la BOM (Bill of Materials) - Fija las versiones de Firebase

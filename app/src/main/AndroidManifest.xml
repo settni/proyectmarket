@@ -12,6 +12,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MarketPlaces">
         <activity
+            android:name=".ItemGaleriaImagenActivity"
+            android:exported="false" />
+        <activity
             android:name=".CambiarPasswordActivity"
             android:exported="false" />
         <activity
