@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">proyectmarket</string>
+
+    <!-- Cadenas añadidas para los nuevos botones de contacto -->
+    <string name="contactar_chat">Chatear</string>
+    <string name="contactar_llamar">Llamar</string>
 </resources>

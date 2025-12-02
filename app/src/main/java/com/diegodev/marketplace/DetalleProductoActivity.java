@@ -3,6 +3,7 @@ package com.diegodev.marketplace;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.annotation.NonNull;
+import androidx.viewpager2.widget.ViewPager2;
 
 import android.content.Intent;
 import android.net.Uri;
@@ -10,29 +11,38 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+// Importaciones de Firebase
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
-import com.diegodev.marketplace.model.Producto;
-import com.bumptech.glide.Glide;
+import com.google.firebase.auth.FirebaseAuth;
 
+// Importaciones de UI y Modelos
+import com.diegodev.marketplace.model.Producto;
+import com.diegodev.marketplace.adapter.SliderImagenAdapter;
+import com.google.android.material.tabs.TabLayout;
+import com.google.android.material.tabs.TabLayoutMediator;
 import com.google.android.material.button.MaterialButton;
 
 import java.text.NumberFormat;
+import java.util.List;
+import java.util.ArrayList; // ESTA ES LA LÍNEA QUE FALTA//
 import java.util.Locale;
 
 
 public class DetalleProductoActivity extends AppCompatActivity {
     public static final String EXTRA_PRODUCTO_ID = "producto_id";
 
+    // Vistas del Carrusel
+    private ViewPager2 viewPagerGaleria;
+    private TabLayout tabLayoutIndicador;
+
     // Vistas del Producto
-    private ImageView ivImagenDetalle;
     private TextView tvNombreDetalle;
     private TextView tvPrecioDetalle;
     private TextView tvDescripcionDetalle;
@@ -46,15 +56,20 @@ public class DetalleProductoActivity extends AppCompatActivity {
     private TextView tvVendedorEmail;
     private TextView tvVendedorTelefono;
 
+    // Botones de acción
     private MaterialButton fabContactar;
+    private MaterialButton fabChat;
 
     // Variables de Firebase
     private DatabaseReference productosRef;
-    // Referencia de la base de datos para la colección de usuarios
     private DatabaseReference usuariosRef;
 
-    // Variable de clase para guardar el teléfono y usarlo en la función de llamada
     private String telefonoVendedor = null;
+
+    // VARIABLES DE CLASE PARA CONTEXTO
+    private String vendedorId = null;
+    private String productoId = null;
+
     private static final String TAG = "Detalle_Producto";
 
 
@@ -77,8 +92,10 @@ public class DetalleProductoActivity extends AppCompatActivity {
         productosRef = FirebaseDatabase.getInstance().getReference("productos");
         usuariosRef = FirebaseDatabase.getInstance().getReference("users");
 
-        // 1. Inicializar Vistas del Producto
-        ivImagenDetalle = findViewById(R.id.iv_detalle_imagen);
+        // 1. Inicializar Vistas del Producto y Carrusel
+        viewPagerGaleria = findViewById(R.id.view_pager_galeria);
+        tabLayoutIndicador = findViewById(R.id.tab_layout_indicador);
+
         tvNombreDetalle = findViewById(R.id.tv_detalle_titulo);
         tvPrecioDetalle = findViewById(R.id.tv_detalle_precio);
         tvDescripcionDetalle = findViewById(R.id.tv_detalle_descripcion);
@@ -92,16 +109,17 @@ public class DetalleProductoActivity extends AppCompatActivity {
         tvVendedorEmail = findViewById(R.id.tv_vendedor_email);
         tvVendedorTelefono = findViewById(R.id.tv_vendedor_telefono);
 
-        // Inicialización del botón
+        // Inicialización de los botones de acción
         fabContactar = findViewById(R.id.fab_contactar);
+        fabChat = findViewById(R.id.fab_chat);
 
         // Placeholder mientras carga
         tvVendedorNombre.setText("Nombre: Cargando detalles...");
 
 
-        // 3. Obtener datos del Intent
+        // 3. Obtener datos del Intent y guardar el ID en variable de clase
         Intent intent = getIntent();
-        String productoId = intent.getStringExtra(EXTRA_PRODUCTO_ID);
+        productoId = intent.getStringExtra(EXTRA_PRODUCTO_ID);
 
 
         if (productoId != null) {
@@ -112,9 +130,9 @@ public class DetalleProductoActivity extends AppCompatActivity {
             finish();
         }
 
-        // 4. Botón Contactar (Llamar)
-        // Llama a la función realizarLlamada, que usa la variable de clase telefonoVendedor
+        // 4. Listeners de Botones
         fabContactar.setOnClickListener(v -> realizarLlamada());
+        fabChat.setOnClickListener(v -> iniciarChat());
     }
 
     @Override
@@ -126,6 +144,11 @@ public class DetalleProductoActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
+    /**
+     * *******************************************************************
+     * MÉTODOS DE LECTURA DE DATOS DE FIREBASE
+     * *******************************************************************
+     */
     private void cargarDatosProducto(String productoId) {
         productosRef.child(productoId).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -136,13 +159,10 @@ public class DetalleProductoActivity extends AppCompatActivity {
                         Producto producto = snapshot.getValue(Producto.class);
 
                         if (producto != null) {
-                            // Mostrar todos los detalles del producto
                             mostrarDetallesProducto(producto);
 
-                            // LECTURA 2: Buscar datos del vendedor usando el VendedorId
-                            String vendedorId = producto.getVendedorId();
+                            vendedorId = producto.getVendedorId();
                             if (vendedorId != null) {
-                                // Se valida que el vendedorId exista antes de buscar el usuario
                                 cargarDatosVendedor(vendedorId);
                             } else {
                                 Log.e(TAG, "Producto sin VendedorId. No se pueden cargar los datos del usuario.");
@@ -150,11 +170,9 @@ public class DetalleProductoActivity extends AppCompatActivity {
                             }
 
                         } else {
-                            // Si el mapeo falla completamente, intenta la lectura individual robusta.
                             mostrarDetallesProductoIndividual(snapshot);
                         }
                     } catch (Exception e) {
-                        // Si falla el mapeo, intenta la lectura individual para no fallar
                         Log.e(TAG, "Error al mapear el objeto Producto. Intentando lectura individual: " + e.getMessage(), e);
                         mostrarDetallesProductoIndividual(snapshot);
                     }
@@ -183,7 +201,8 @@ public class DetalleProductoActivity extends AppCompatActivity {
         String condicion = snapshot.child("condicion").getValue(String.class);
         String categoria = snapshot.child("categoria").getValue(String.class);
         String direccion = snapshot.child("direccion").getValue(String.class);
-        String vendedorId = snapshot.child("vendedorId").getValue(String.class);
+
+        vendedorId = snapshot.child("vendedorId").getValue(String.class);
 
         // Asignar texto
         tvNombreDetalle.setText(nombre != null ? nombre : "N/A");
@@ -204,21 +223,31 @@ public class DetalleProductoActivity extends AppCompatActivity {
         tvCategoriaDetalle.setText("Categoría: " + (categoria != null ? categoria : "N/A"));
         tvDireccionDetalle.setText("Retiro en: " + (direccion != null ? direccion : "No provista"));
 
-        // Cargar Imagen
+        // ** Cargar Galería de Imágenes (Carrusel) **
         DataSnapshot imageUrlsSnapshot = snapshot.child("imageUrls");
-        if (imageUrlsSnapshot.exists() && imageUrlsSnapshot.getChildrenCount() > 0) {
-            String firstImageUrl = imageUrlsSnapshot.getChildren().iterator().next().getValue(String.class);
-            if (firstImageUrl != null) {
-                Glide.with(DetalleProductoActivity.this)
-                        .load(firstImageUrl)
-                        .placeholder(R.drawable.agregar_img)
-                        .error(R.drawable.error)
-                        .centerCrop()
-                        .into(ivImagenDetalle);
+        if (imageUrlsSnapshot.exists()) {
+
+            // CORRECCIÓN PARA EL WARNING 'UNCHECKED': Usamos un ArrayList y un bucle
+            // para leer de forma segura cada URL como String, garantizando el tipo.
+            List<String> imageUrls = new ArrayList<>();
+            for (DataSnapshot urlSnapshot : imageUrlsSnapshot.getChildren()) {
+                String url = urlSnapshot.getValue(String.class);
+                if (url != null) {
+                    imageUrls.add(url);
+                }
             }
-        } else {
-            ivImagenDetalle.setImageResource(R.drawable.agregar_img);
+            // FIN DE LA CORRECCIÓN
+
+            if (!imageUrls.isEmpty()) {
+                SliderImagenAdapter adapter = new SliderImagenAdapter(this, imageUrls);
+                viewPagerGaleria.setAdapter(adapter);
+
+                new TabLayoutMediator(tabLayoutIndicador, viewPagerGaleria,
+                        (tab, position) -> {}
+                ).attach();
+            }
         }
+        // ***************************************************************
 
         // LECTURA 2: Buscar datos del vendedor
         if (vendedorId != null) {
@@ -237,23 +266,17 @@ public class DetalleProductoActivity extends AppCompatActivity {
                 String nombre = snapshot.child("nombre").getValue(String.class);
                 String email = snapshot.child("email").getValue(String.class);
                 String codigo = snapshot.child("codigoTelefono").getValue(String.class);
-                //String numero = snapshot.child("telefono").getValue(String.class);
                 String numero = String.valueOf(snapshot.child("telefono").getValue());
 
-                // Si se encontró AL MENOS un dato, asumimos que el perfil existe.
                 if (nombre != null || email != null || codigo != null || numero != null) {
 
-                    // COMBINAMOS Y FORMATEAMOS EL TELÉFONO
                     String telefonoCompleto = combinarTelefono(codigo, numero);
 
-                    // PASO CLAVE: Guardar teléfono completo en la variable de clase para la función de Contactar (Llamar)
                     telefonoVendedor = telefonoCompleto;
 
-                    // Mostrar los detalles
                     mostrarDetallesVendedor(nombre, email, telefonoCompleto);
 
                 } else {
-                    // Si todos los valores son nulos, el nodo del usuario no existe
                     Log.w(TAG, "Usuario no encontrado o datos nulos para ID: " + vendedorId);
                     mostrarDetallesVendedor("Usuario No Encontrado", "No disponible", null);
                 }
@@ -269,21 +292,23 @@ public class DetalleProductoActivity extends AppCompatActivity {
 
 
     /**
-     * Muestra todos los detalles del producto en las vistas.
+     * *******************************************************************
+     * MÉTODOS DE ACTUALIZACIÓN DE UI
+     * *******************************************************************
      */
     private void mostrarDetallesProducto(Producto producto) {
-        // 1. Cargar la imagen principal
+        // ** 1. Cargar Galería de Imágenes (Carrusel) **
         if (producto.getImageUrls() != null && !producto.getImageUrls().isEmpty()) {
-            String imageUrl = producto.getImageUrls().get(0);
-            Glide.with(this)
-                    .load(imageUrl)
-                    .placeholder(R.drawable.agregar_img)
-                    .error(R.drawable.error)
-                    .centerCrop()
-                    .into(ivImagenDetalle);
-        } else {
-            ivImagenDetalle.setImageResource(R.drawable.agregar_img);
+            List<String> imageUrls = producto.getImageUrls();
+
+            SliderImagenAdapter adapter = new SliderImagenAdapter(this, imageUrls);
+            viewPagerGaleria.setAdapter(adapter);
+
+            new TabLayoutMediator(tabLayoutIndicador, viewPagerGaleria,
+                    (tab, position) -> {}
+            ).attach();
         }
+        // ***************************************************************
 
         // 2. Asignar Texto a las Vistas Principales (Título, Precio, Descripción)
         tvNombreDetalle.setText(producto.getNombre());
@@ -302,7 +327,7 @@ public class DetalleProductoActivity extends AppCompatActivity {
     }
 
     /**
-     * Muestra los detalles de contacto del vendedor y controla la disponibilidad del botón de contacto.
+     * Muestra los detalles de contacto del vendedor y controla la disponibilidad de los botones de contacto.
      */
     private void mostrarDetallesVendedor(String nombre, String email, String telefono) {
         // Nombre
@@ -321,19 +346,38 @@ public class DetalleProductoActivity extends AppCompatActivity {
         // Habilitar/Deshabilitar el botón de llamar
         boolean telefonoValido = telefono != null && !telefono.isEmpty() && telefono.matches("^\\+?[0-9\\s()-]*$");
         fabContactar.setEnabled(telefonoValido);
+
+        // --- Lógica del Chat y Validación de Dueño ---
+
+        // Habilitar el botón de chat si el ID del vendedor es válido
+        boolean chatValido = vendedorId != null;
+        fabChat.setEnabled(chatValido);
+
+        // Obtener el ID del usuario actual para la validación
+        String currentUserId = FirebaseAuth.getInstance().getCurrentUser() != null
+                ? FirebaseAuth.getInstance().getCurrentUser().getUid()
+                : null;
+
+        // Si el usuario actual es el vendedor, deshabilita ambos botones de contacto
+        if (currentUserId != null && currentUserId.equals(vendedorId)) {
+            fabContactar.setEnabled(false);
+            fabChat.setEnabled(false);
+            Toast.makeText(this, "Estás viendo tu propio producto.", Toast.LENGTH_SHORT).show();
+        }
     }
 
-    // --- Funciones de Contacto ---
+    /**
+     * *******************************************************************
+     * MÉTODOS DE ACCIÓN (DEFINICIÓN DE 'realizarLlamada' e 'iniciarChat')
+     * *******************************************************************
+     */
     private void realizarLlamada() {
-        // Se asegura de que la variable de clase tenga un número cargado
         if (telefonoVendedor == null || telefonoVendedor.isEmpty()) {
             Toast.makeText(this, "El vendedor no ha proporcionado un número de contacto para llamar.", Toast.LENGTH_SHORT).show();
             return;
         }
 
         try {
-            // Utilizamos ACTION_DIAL para abrir el marcador con el número precargado
-            // El formato 'tel:' es clave para que Android sepa que es una llamada
             Uri telefonoUri = Uri.parse("tel:" + telefonoVendedor);
             Intent intentLlamada = new Intent(Intent.ACTION_DIAL, telefonoUri);
 
@@ -348,17 +392,50 @@ public class DetalleProductoActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Inicia la actividad de Chat.
+     * Envía el ID del vendedor (receptor) y el ID del producto (para contexto).
+     */
+    private void iniciarChat() {
+        if (vendedorId == null || productoId == null) {
+            Toast.makeText(this, "Falta información del producto o vendedor para iniciar el chat.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Usamos Class.forName para verificar la existencia de ChatActivity dinámicamente
+        try {
+            // Asegúrate de que el paquete sea el correcto para tu proyecto
+            Class<?> chatActivityClass = Class.forName("com.diegodev.marketplace.ChatActivity");
+            Intent intentChat = new Intent(DetalleProductoActivity.this, chatActivityClass);
+
+            // Parámetros necesarios: ID del receptor (vendedor) y el ID del producto
+            intentChat.putExtra("RECEIVER_ID", vendedorId);
+            intentChat.putExtra("PRODUCT_ID", productoId);
+
+            startActivity(intentChat);
+
+        } catch (ClassNotFoundException e) {
+            Log.e(TAG, "Error: ChatActivity no encontrada. Asegúrate de crearla con ese nombre.", e);
+            Toast.makeText(this, "La función de chat no está disponible (ChatActivity no existe).", Toast.LENGTH_LONG).show();
+        }
+    }
+
+    /**
+     * *******************************************************************
+     * MÉTODO AUXILIAR
+     * *******************************************************************
+     */
     private String combinarTelefono(String codigo, String numero) {
-        // Revisa que ambos parámetros no sean nulos O vacíos.
         if (codigo != null && !codigo.isEmpty() && numero != null && !numero.isEmpty()) {
-            // Eliminamos cualquier carácter que no sea dígito
             String cleanedCodigo = codigo.replaceAll("[^0-9]", "");
             String cleanedNumero = numero.replaceAll("[^0-9]", "");
 
-            // Devuelve el número en formato internacional limpio
-            return "+" + cleanedCodigo + cleanedNumero;
+            // Asegura que el código tenga el prefijo '+'
+            if (!cleanedCodigo.startsWith("+")) {
+                return "+" + cleanedCodigo + cleanedNumero;
+            }
+            return cleanedCodigo + cleanedNumero;
         }
         return null;
     }
 }
-

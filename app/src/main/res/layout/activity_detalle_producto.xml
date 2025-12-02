@@ -28,6 +28,8 @@
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:clipToPadding="false"
+        android:paddingBottom="90dp"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <androidx.constraintlayout.widget.ConstraintLayout
@@ -35,18 +37,36 @@
             android:layout_height="wrap_content"
             android:paddingBottom="16dp">
 
-            <!-- Imagen Principal del Producto (ocupará todo el ancho) -->
-            <ImageView
-                android:id="@+id/iv_detalle_imagen"
+            <!-- ****************************************************** -->
+            <!-- CARRUSEL DE IMÁGENES (ViewPager2 y TabLayout) -->
+            <!-- ****************************************************** -->
+
+            <!-- ViewPager2 para el carrusel de múltiples imágenes. Altura fija de 300dp. -->
+            <androidx.viewpager2.widget.ViewPager2
+                android:id="@+id/view_pager_galeria"
                 android:layout_width="0dp"
                 android:layout_height="300dp"
-                android:scaleType="centerCrop"
-                android:src="@drawable/agregar_img"
-                android:contentDescription="Imagen detallada del producto"
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent" />
+
+            <!-- Indicador de página (los puntos) asociado al ViewPager2. -->
+            <com.google.android.material.tabs.TabLayout
+                android:id="@+id/tab_layout_indicador"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                app:tabBackground="@drawable/tab_selector"
+                app:tabIndicatorHeight="0dp"
+                app:layout_constraintBottom_toTopOf="@+id/card_info"
                 app:layout_constraintEnd_toEndOf="parent"
-                tools:src="@drawable/bicicleta" />
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/view_pager_galeria"
+                app:layout_constraintVertical_bias="0.9" />
+
+            <!-- ****************************************************** -->
+            <!-- FIN DEL CARRUSEL DE IMÁGENES -->
+            <!-- ****************************************************** -->
 
             <!-- Contenedor principal de la información -->
             <androidx.cardview.widget.CardView
@@ -61,7 +81,7 @@
                 app:cardElevation="8dp"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/iv_detalle_imagen">
+                app:layout_constraintTop_toBottomOf="@+id/view_pager_galeria">
 
                 <androidx.constraintlayout.widget.ConstraintLayout
                     android:layout_width="match_parent"
@@ -96,7 +116,7 @@
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toBottomOf="@+id/tv_detalle_titulo" />
 
-                    <!-- Separador 1 (Revertido a color original) -->
+                    <!-- Separador 1 -->
                     <View
                         android:id="@+id/divider1"
                         android:layout_width="0dp"
@@ -169,7 +189,7 @@
                         app:layout_constraintTop_toBottomOf="@+id/tv_detalle_categoria" />
 
 
-                    <!-- Separador 2 (Revertido a color original) -->
+                    <!-- Separador 2 -->
                     <View
                         android:id="@+id/divider2"
                         android:layout_width="0dp"
@@ -193,7 +213,7 @@
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toBottomOf="@+id/divider2" />
 
-                    <!-- Descripción del Producto (Sin lorem ipsum, solo tools:text para preview) -->
+                    <!-- Descripción del Producto -->
                     <TextView
                         android:id="@+id/tv_detalle_descripcion"
                         android:layout_width="0dp"
@@ -207,7 +227,7 @@
                         app:layout_constraintTop_toBottomOf="@+id/tv_etiqueta_descripcion"
                         tools:text="Esta es la descripción detallada del producto que se carga directamente desde la base de datos de Firebase. Ya no se usa 'lorem ipsum' en el layout, solo en la vista previa del diseñador."/>
 
-                    <!-- Separador 3 (Revertido a color original) -->
+                    <!-- Separador 3 -->
                     <View
                         android:id="@+id/divider3"
                         android:layout_width="0dp"
@@ -218,7 +238,7 @@
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toBottomOf="@+id/tv_detalle_descripcion" />
 
-                    <!-- *************** SECCIÓN DE VENDEDOR (TEXTO PLANO) *************** -->
+                    <!-- *************** SECCIÓN DE VENDEDOR *************** -->
                     <TextView
                         android:id="@+id/tv_etiqueta_contacto"
                         android:layout_width="wrap_content"
@@ -231,7 +251,7 @@
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toBottomOf="@+id/divider3" />
 
-                    <!-- Nombre del Vendedor (ID tv_detalle_vendedor ya existe) -->
+                    <!-- Nombre del Vendedor -->
                     <TextView
                         android:id="@+id/tv_detalle_vendedor"
                         android:layout_width="0dp"
@@ -242,7 +262,7 @@
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toBottomOf="@+id/tv_etiqueta_contacto" />
 
-                    <!-- Email del Vendedor (ID tv_vendedor_email ya existe, sin ícono) -->
+                    <!-- Email del Vendedor -->
                     <TextView
                         android:id="@+id/tv_vendedor_email"
                         android:layout_width="0dp"
@@ -255,7 +275,7 @@
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toBottomOf="@+id/tv_detalle_vendedor" />
 
-                    <!-- Teléfono del Vendedor (Nuevo TextView) -->
+                    <!-- Teléfono del Vendedor -->
                     <TextView
                         android:id="@+id/tv_vendedor_telefono"
                         android:layout_width="0dp"
@@ -268,21 +288,7 @@
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toBottomOf="@+id/tv_vendedor_email" />
 
-                    <!-- Botón de Contactar Vendedor (Sin backgroundTint explícito) -->
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/fab_contactar"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="24dp"
-                        android:text="Contactar Vendedor"
-                        android:textSize="16sp"
-                        android:paddingVertical="12dp"
-                        app:icon="@android:drawable/ic_menu_call"
-                        app:iconGravity="textStart"
-                        app:cornerRadius="12dp"
-                        app:layout_constraintTop_toBottomOf="@+id/tv_vendedor_telefono"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintEnd_toEndOf="parent" />
+                    <!-- ** IMPORTANTE: Se ha quitado el MaterialButton de contacto de aquí ** -->
 
                 </androidx.constraintlayout.widget.ConstraintLayout>
             </androidx.cardview.widget.CardView>
@@ -290,5 +296,43 @@
         </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.core.widget.NestedScrollView>
 
-</androidx.coordinatorlayout.widget.CoordinatorLayout>
+    <!-- ****************************************************** -->
+    <!-- NUEVA SECCIÓN: Contenedor de Botones Flotantes (FABs) -->
+    <!-- ****************************************************** -->
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:orientation="horizontal"
+        android:padding="16dp"
+        android:elevation="8dp">
 
+        <!-- 1. NUEVO BOTÓN: CHAT (FAB) -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/fab_chat"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:text="@string/contactar_chat"
+            app:icon="@drawable/ic_chat_24"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton.Icon"
+            app:cornerRadius="24dp"
+            android:tooltipText="Iniciar Chat con el Vendedor"
+            android:contentDescription="Iniciar Chat con el Vendedor" />
+
+        <!-- 2. BOTÓN EXISTENTE: LLAMAR (FAB) -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/fab_contactar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/contactar_llamar"
+            app:icon="@drawable/ic_call_24"
+            style="@style/Widget.MaterialComponents.Button.Icon"
+            app:cornerRadius="24dp"
+            android:tooltipText="Llamar al Vendedor"
+            android:contentDescription="Llamar al Vendedor" />
+
+    </LinearLayout>
+    <!-- ****************************************************** -->
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

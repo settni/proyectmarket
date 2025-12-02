@@ -3,7 +3,9 @@ package com.diegodev.marketplace;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.recyclerview.widget.GridLayoutManager;
 
+import android.content.ClipData;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -15,6 +17,8 @@ import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.diegodev.marketplace.model.Producto;
+import com.diegodev.marketplace.adapter.GaleriaImagenesAdapter;
+
 import com.bumptech.glide.Glide;
 
 import com.google.firebase.auth.FirebaseAuth;
@@ -27,55 +31,53 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.android.material.button.MaterialButton;
 
+import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.Tasks;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 /**
- * Actividad para publicar o editar un producto en el Marketplace.
- * Gestiona la carga de la imagen principal y los datos del producto.
+ * Actividad para publicar o editar un producto con soporte para múltiples imágenes.
  */
-public class Publicar extends AppCompatActivity {
+public class Publicar extends AppCompatActivity
+        implements GaleriaImagenesAdapter.OnImageInteractionListener {
 
     private static final String TAG = "Publicar";
     private static final int PICK_IMAGE_REQUEST = 1;
 
-    // Vistas de la UI
-    // NOTA: Todos los IDs aquí son de la clase R.id. Los nombres deben coincidir con tu XML.
     private EditText etNombre, etMarca, etPrecio, etDescripcion, etDireccion;
     private AutoCompleteTextView spCategoria, spCondicion;
     private MaterialButton btnPublicar;
     private ImageView ivImagenPrincipal;
     private RecyclerView rvGaleriaImagenes;
 
-    // Firebase
     private FirebaseAuth mAuth;
     private DatabaseReference productosRef;
     private StorageReference storageRef;
 
-    // Variables de estado para edición
     private String productoIdEditar = null;
-    private String urlImagenAnterior = null;
-    private Uri imagenSeleccionadaUri = null;
+    private List<Uri> imagenesSeleccionadasUri = new ArrayList<>();
+    private GaleriaImagenesAdapter galeriaAdapter;
+    private List<String> urlsAnteriores = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_publicar);
 
-        // 1. Inicializar
         inicializarFirebase();
-        inicializarVistas(); // <--- Aquí es donde se conectan los IDs del XML
+        inicializarVistas();
         configurarSpinners();
+        configurarGaleria();
 
-        // 2. Configurar ActionBar
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             getSupportActionBar().setDisplayShowHomeEnabled(true);
         }
 
-        // 3. Revisar Modo Edición (configurarModoEdicion)
         Intent intent = getIntent();
         if (intent.hasExtra("PRODUCTO_ID_EDITAR")) {
             productoIdEditar = intent.getStringExtra("PRODUCTO_ID_EDITAR");
@@ -90,8 +92,7 @@ public class Publicar extends AppCompatActivity {
             btnPublicar.setText("Publicar Producto");
         }
 
-        // 4. Listeners (abrirSelectorImagen)
-        ivImagenPrincipal.setOnClickListener(v -> abrirSelectorImagen());
+        ivImagenPrincipal.setOnClickListener(v -> abrirSelectorMultiplesImagenes());
 
         btnPublicar.setOnClickListener(v -> {
             if (productoIdEditar != null) {
@@ -102,55 +103,32 @@ public class Publicar extends AppCompatActivity {
         });
     }
 
-    /**
-     * Maneja el clic en la flecha de regreso de la ActionBar.
-     */
     @Override
     public boolean onSupportNavigateUp() {
         onBackPressed();
         return true;
     }
 
-    /**
-     * Inicializa las referencias a Firebase.
-     */
     private void inicializarFirebase() {
         mAuth = FirebaseAuth.getInstance();
         productosRef = FirebaseDatabase.getInstance().getReference("productos");
         storageRef = FirebaseStorage.getInstance().getReference("imagenes_productos");
     }
 
-    /**
-     * Inicializa las vistas de la UI (findViewById).
-     * ¡ESTA FUNCIÓN ESTÁ PERFECTAMENTE ALINEADA CON TU XML!
-     */
     private void inicializarVistas() {
-        // ImageView (Imagen principal)
         ivImagenPrincipal = findViewById(R.id.iv_publicar_imagen_placeholder);
-
-        // RecyclerView (Galería)
         rvGaleriaImagenes = findViewById(R.id.rv_galeria_imagenes);
-
-        // EditTexts (Dentro de los TextInputLayout)
         etNombre = findViewById(R.id.et_publicar_nombre);
         etMarca = findViewById(R.id.et_publicar_marca);
         etPrecio = findViewById(R.id.et_publicar_precio);
         etDescripcion = findViewById(R.id.et_publicar_descripcion);
         etDireccion = findViewById(R.id.et_publicar_direccion);
-
-        // Exposed Dropdowns (AutoCompleteTextView)
         spCondicion = findViewById(R.id.spinner_condicion);
         spCategoria = findViewById(R.id.spinner_categoria);
-
-        // Button
         btnPublicar = findViewById(R.id.btn_publicar_producto);
     }
 
-    /**
-     * Configura los adaptadores para los AutoCompleteTextView.
-     */
     private void configurarSpinners() {
-        // Esto requiere que exista el archivo res/values/arrays.xml
         try {
             String[] categorias = getResources().getStringArray(R.array.categorias_array);
             ArrayAdapter<String> categoriaAdapter = new ArrayAdapter<>(this,
@@ -166,17 +144,149 @@ public class Publicar extends AppCompatActivity {
         }
     }
 
-    // *******************************************************************
-    // LÓGICA DE EDICIÓN Y CARGA (configurarModoEdicion)
-    // *******************************************************************
+    private void configurarGaleria() {
+        rvGaleriaImagenes.setLayoutManager(new GridLayoutManager(this, 4));
+        galeriaAdapter = new GaleriaImagenesAdapter(this, imagenesSeleccionadasUri, this);
+        rvGaleriaImagenes.setAdapter(galeriaAdapter);
+    }
 
-    /**
-     * Pone la UI en modo edición, carga datos del producto desde Firebase.
-     */
+    @Override
+    public void onRemoveImage(int position) {
+        if (position >= 0 && position < imagenesSeleccionadasUri.size()) {
+            imagenesSeleccionadasUri.remove(position);
+
+            galeriaAdapter.notifyItemRemoved(position);
+            galeriaAdapter.notifyItemRangeChanged(position, imagenesSeleccionadasUri.size());
+
+            if (imagenesSeleccionadasUri.isEmpty()) {
+                ivImagenPrincipal.setImageResource(R.drawable.agregar_img);
+            } else if (position == 0) {
+                onSelectMainImage(0);
+            }
+            Toast.makeText(this, "Imagen eliminada de la selección.", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    @Override
+    public void onSelectMainImage(int position) {
+        if (position >= 0 && position < imagenesSeleccionadasUri.size()) {
+            Uri newMainUri = imagenesSeleccionadasUri.get(position);
+            Glide.with(this).load(newMainUri).into(ivImagenPrincipal);
+        }
+    }
+
+    private void abrirSelectorMultiplesImagenes() {
+        Intent intent = new Intent();
+        intent.setType("image/*");
+        intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+        intent.setAction(Intent.ACTION_GET_CONTENT);
+        startActivityForResult(Intent.createChooser(intent, "Seleccionar Imágenes (Máx. 10)"), PICK_IMAGE_REQUEST);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK && data != null) {
+
+            imagenesSeleccionadasUri.clear();
+
+            if (data.getClipData() != null) {
+                ClipData clipData = data.getClipData();
+                for (int i = 0; i < clipData.getItemCount() && i < 10; i++) {
+                    imagenesSeleccionadasUri.add(clipData.getItemAt(i).getUri());
+                }
+            } else if (data.getData() != null) {
+                imagenesSeleccionadasUri.add(data.getData());
+            }
+
+            if (!imagenesSeleccionadasUri.isEmpty()) {
+                onSelectMainImage(0);
+                galeriaAdapter.notifyDataSetChanged();
+            } else {
+                ivImagenPrincipal.setImageResource(R.drawable.agregar_img);
+            }
+        }
+    }
+
+    private void publicarProducto() {
+        if (mAuth.getCurrentUser() == null || imagenesSeleccionadasUri.isEmpty() || !validarCampos()) {
+            Toast.makeText(Publicar.this, "Revisa la sesión, imágenes y campos obligatorios.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        btnPublicar.setEnabled(false);
+        btnPublicar.setText("Subiendo Imágenes...");
+
+        subirTodasLasImagenesYGuardarProducto();
+    }
+
+    private void subirTodasLasImagenesYGuardarProducto() {
+        List<Task<Uri>> uploadTasks = new ArrayList<>();
+
+        for (Uri uri : imagenesSeleccionadasUri) {
+            StorageReference fileReference = storageRef.child(System.currentTimeMillis() + "_" + uri.getLastPathSegment());
+
+            Task<Uri> uploadTask = fileReference.putFile(uri)
+                    .continueWithTask(task -> {
+                        if (!task.isSuccessful()) {
+                            throw task.getException();
+                        }
+                        return fileReference.getDownloadUrl();
+                    });
+            uploadTasks.add(uploadTask);
+        }
+
+        Tasks.whenAllSuccess(uploadTasks)
+                .addOnSuccessListener(results -> {
+                    List<String> downloadUrls = new ArrayList<>();
+                    for (Object result : results) {
+                        if (result instanceof Uri) {
+                            downloadUrls.add(((Uri) result).toString());
+                        }
+                    }
+                    guardarProductoEnDatabase(downloadUrls);
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error al subir imágenes: " + e.getMessage());
+                    Toast.makeText(Publicar.this, "Error al subir imágenes.", Toast.LENGTH_LONG).show();
+                    btnPublicar.setEnabled(true);
+                    btnPublicar.setText("Publicar Producto");
+                });
+    }
+
+    private void guardarProductoEnDatabase(List<String> imageUrls) {
+        String nombre = etNombre.getText().toString().trim();
+        String marca = etMarca.getText().toString().trim();
+        String descripcion = etDescripcion.getText().toString().trim();
+        String direccion = etDireccion.getText().toString().trim();
+        double precio = Double.parseDouble(etPrecio.getText().toString().trim());
+        String categoria = spCategoria.getText().toString();
+        String condicion = spCondicion.getText().toString();
+        String vendedorId = mAuth.getCurrentUser().getUid();
+
+        Producto nuevoProducto = new Producto(
+                nombre, marca, categoria, condicion,
+                null,
+                descripcion, direccion, precio, vendedorId, System.currentTimeMillis(), imageUrls
+        );
+
+        String productoId = productosRef.push().getKey();
+        productosRef.child(productoId).setValue(nuevoProducto)
+                .addOnSuccessListener(aVoid -> {
+                    Toast.makeText(Publicar.this, "Producto publicado con éxito.", Toast.LENGTH_SHORT).show();
+                    finish();
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(Publicar.this, "Error al publicar: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                    btnPublicar.setEnabled(true);
+                    btnPublicar.setText("Publicar Producto");
+                });
+    }
+
     private void configurarModoEdicion(String id) {
         btnPublicar.setText("Guardar Cambios");
 
-        // 1. Busco el producto por su ID en Firebase
         productosRef.child(id).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
@@ -184,10 +294,10 @@ public class Publicar extends AppCompatActivity {
                     Producto producto = snapshot.getValue(Producto.class);
                     if (producto != null) {
                         rellenarCampos(producto);
-                        // Almacenar la URL de la imagen existente
-                        List<String> urls = producto.getImageUrls();
-                        if (urls != null && !urls.isEmpty()) {
-                            urlImagenAnterior = urls.get(0);
+
+                        urlsAnteriores = producto.getImageUrls();
+                        if (urlsAnteriores != null && !urlsAnteriores.isEmpty()) {
+                            Glide.with(Publicar.this).load(urlsAnteriores.get(0)).into(ivImagenPrincipal);
                         }
                     } else {
                         Toast.makeText(Publicar.this, "Producto no existe.", Toast.LENGTH_LONG).show();
@@ -207,91 +317,61 @@ public class Publicar extends AppCompatActivity {
         });
     }
 
-    /**
-     * Muestra los datos del producto en los campos de la UI.
-     */
     private void rellenarCampos(Producto producto) {
         etNombre.setText(producto.getNombre());
         etMarca.setText(producto.getMarca());
         etPrecio.setText(String.valueOf((int) producto.getPrecio()));
         etDescripcion.setText(producto.getDescripcion());
         etDireccion.setText(producto.getDireccion());
-
-        // Cargar la imagen principal con Glide
-        List<String> urls = producto.getImageUrls();
-        if (urls != null && !urls.isEmpty()) {
-            Glide.with(Publicar.this).load(urls.get(0)).into(ivImagenPrincipal);
-        }
-
-        // Seleccionar los valores correctos en los AutoCompleteTextView
         spCategoria.setText(producto.getCategoria(), false);
         spCondicion.setText(producto.getCondicion(), false);
     }
-
-    // *******************************************************************
-    // LÓGICA DE ACTUALIZACIÓN (GUARDAR CAMBIOS)
-    // *******************************************************************
 
     private void actualizarProducto() {
         if (productoIdEditar == null || !validarCampos()) {
             return;
         }
 
-        if (imagenSeleccionadaUri != null) {
-            // Caso 1: Hay nueva imagen - subirla, borrar la vieja y actualizar DB
-            subirNuevaImagenYActualizar();
+        btnPublicar.setEnabled(false);
+        btnPublicar.setText("Guardando Cambios...");
+
+        if (imagenesSeleccionadasUri.isEmpty()) {
+            // No hay imágenes nuevas, mantiene las anteriores
+            actualizarDatosProductoSoloTexto(urlsAnteriores);
         } else {
-            // Caso 2: No hay nueva imagen - solo actualizar los datos en DB
-            actualizarDatosProducto(urlImagenAnterior);
+            // Hay imágenes nuevas, sube y reemplaza
+            subirTodasLasImagenesYActualizarDatos();
         }
     }
 
-    /**
-     * Sube la nueva imagen, elimina la vieja y llama a actualizar la base de datos.
-     */
-    private void subirNuevaImagenYActualizar() {
-        StorageReference fileReference = storageRef.child(System.currentTimeMillis() + "_" + mAuth.getCurrentUser().getUid());
+    private void subirTodasLasImagenesYActualizarDatos() {
+        List<Task<Uri>> uploadTasks = new ArrayList<>();
 
-        fileReference.putFile(imagenSeleccionadaUri)
-                .continueWithTask(task -> {
-                    if (!task.isSuccessful()) {
-                        throw task.getException();
-                    }
-                    return fileReference.getDownloadUrl();
-                })
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        String nuevaUrl = task.getResult().toString();
+        for (Uri uri : imagenesSeleccionadasUri) {
+            StorageReference fileReference = storageRef.child(System.currentTimeMillis() + "_" + uri.getLastPathSegment());
+            Task<Uri> uploadTask = fileReference.putFile(uri).continueWithTask(task -> fileReference.getDownloadUrl());
+            uploadTasks.add(uploadTask);
+        }
 
-                        if (urlImagenAnterior != null && !urlImagenAnterior.isEmpty()) {
-                            eliminarImagenAnterior(urlImagenAnterior);
+        Tasks.whenAllSuccess(uploadTasks)
+                .addOnSuccessListener(results -> {
+                    List<String> downloadUrls = new ArrayList<>();
+                    for (Object result : results) {
+                        if (result instanceof Uri) {
+                            downloadUrls.add(((Uri) result).toString());
                         }
-
-                        actualizarDatosProducto(nuevaUrl);
-
-                    } else {
-                        Toast.makeText(Publicar.this, "Error al subir la imagen.", Toast.LENGTH_SHORT).show();
                     }
+                    actualizarDatosProductoSoloTexto(downloadUrls);
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error al subir imágenes en Edición: " + e.getMessage());
+                    Toast.makeText(Publicar.this, "Error al subir imágenes para edición.", Toast.LENGTH_LONG).show();
+                    btnPublicar.setEnabled(true);
+                    btnPublicar.setText("Guardar Cambios");
                 });
     }
 
-    /**
-     * Elimina el archivo de imagen de Firebase Storage usando su URL.
-     */
-    private void eliminarImagenAnterior(String url) {
-        try {
-            StorageReference oldRef = FirebaseStorage.getInstance().getReferenceFromUrl(url);
-            oldRef.delete();
-        } catch (Exception e) {
-            Log.e(TAG, "Error al intentar eliminar la imagen vieja: " + e.getMessage());
-        }
-    }
-
-    /**
-     * Guarda los datos actualizados en Realtime Database.
-     */
-    private void actualizarDatosProducto(String urlImagenFinal) {
-        // 1. Extraer los datos de la UI
+    private void actualizarDatosProductoSoloTexto(List<String> nuevaImageUrls) {
         String nombre = etNombre.getText().toString().trim();
         String marca = etMarca.getText().toString().trim();
         String descripcion = etDescripcion.getText().toString().trim();
@@ -300,7 +380,6 @@ public class Publicar extends AppCompatActivity {
         String categoria = spCategoria.getText().toString();
         String condicion = spCondicion.getText().toString();
 
-        // 2. Crear un mapa con los campos que quiero actualizar
         Map<String, Object> updates = new HashMap<>();
         updates.put("nombre", nombre);
         updates.put("marca", marca);
@@ -309,50 +388,20 @@ public class Publicar extends AppCompatActivity {
         updates.put("precio", precio);
         updates.put("categoria", categoria);
         updates.put("condicion", condicion);
+        updates.put("imageUrls", nuevaImageUrls);
 
-        List<String> imageUrls = new ArrayList<>();
-        if (urlImagenFinal != null && !urlImagenFinal.isEmpty()) {
-            imageUrls.add(urlImagenFinal);
-        }
-        updates.put("imageUrls", imageUrls);
-
-
-        // 3. Uso updateChildren() para actualizar SOLO estos campos en Firebase
         productosRef.child(productoIdEditar).updateChildren(updates)
                 .addOnSuccessListener(aVoid -> {
-                    Toast.makeText(Publicar.this, "Cambios guardados con éxito.", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(Publicar.this, "Cambios guardados.", Toast.LENGTH_SHORT).show();
                     finish();
                 })
                 .addOnFailureListener(e -> {
                     Toast.makeText(Publicar.this, "Error al guardar cambios.", Toast.LENGTH_LONG).show();
+                    btnPublicar.setEnabled(true);
+                    btnPublicar.setText("Guardar Cambios");
                 });
     }
 
-    // *******************************************************************
-    // LÓGICA DE PUBLICACIÓN NORMAL
-    // *******************************************************************
-
-    private void publicarProducto() {
-        if (mAuth.getCurrentUser() == null) {
-            Toast.makeText(Publicar.this, "Debes iniciar sesión.", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        if (imagenSeleccionadaUri == null) {
-            Toast.makeText(Publicar.this, "Selecciona una imagen principal.", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        if (!validarCampos()) {
-            return;
-        }
-
-        subirImagenYGuardarProducto();
-    }
-
-    /**
-     * Valida que los campos obligatorios (nombre, precio) sean correctos.
-     */
     private boolean validarCampos() {
         String nombre = etNombre.getText().toString().trim();
         String precioStr = etPrecio.getText().toString().trim();
@@ -371,86 +420,4 @@ public class Publicar extends AppCompatActivity {
 
         return true;
     }
-
-    /**
-     * Sube la imagen seleccionada a Storage y luego llama a guardar el producto en la DB.
-     */
-    private void subirImagenYGuardarProducto() {
-        StorageReference fileReference = storageRef.child(System.currentTimeMillis() + "_" + mAuth.getCurrentUser().getUid());
-
-        fileReference.putFile(imagenSeleccionadaUri)
-                .continueWithTask(task -> fileReference.getDownloadUrl())
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        String downloadUrl = task.getResult().toString();
-                        guardarProductoEnDatabase(downloadUrl);
-                    } else {
-                        Toast.makeText(Publicar.this, "Error al subir imagen.", Toast.LENGTH_LONG).show();
-                    }
-                });
-    }
-
-    /**
-     * Crea el objeto Producto y lo guarda en Firebase Realtime Database.
-     */
-    private void guardarProductoEnDatabase(String urlImagen) {
-        // 1. Extraer datos y crear objeto Producto
-        String nombre = etNombre.getText().toString().trim();
-        String marca = etMarca.getText().toString().trim();
-        String descripcion = etDescripcion.getText().toString().trim();
-        String direccion = etDireccion.getText().toString().trim();
-        double precio = Double.parseDouble(etPrecio.getText().toString().trim());
-        String categoria = spCategoria.getText().toString();
-        String condicion = spCondicion.getText().toString();
-        String vendedorId = mAuth.getCurrentUser().getUid();
-        long fechaPublicacion = System.currentTimeMillis();
-
-        // Solo guardamos la imagen principal por ahora
-        List<String> imageUrls = new ArrayList<>();
-        imageUrls.add(urlImagen);
-
-        Producto nuevoProducto = new Producto(
-                nombre, marca, categoria, condicion,
-                null,
-                descripcion, direccion, precio, vendedorId, fechaPublicacion, imageUrls
-        );
-
-        // 2. Guardar en Firebase
-        String productoId = productosRef.push().getKey();
-        productosRef.child(productoId).setValue(nuevoProducto)
-                .addOnSuccessListener(aVoid -> {
-                    Toast.makeText(Publicar.this, "Producto publicado con éxito.", Toast.LENGTH_SHORT).show();
-                    finish();
-                })
-                .addOnFailureListener(e -> {
-                    Toast.makeText(Publicar.this, "Error al publicar.", Toast.LENGTH_LONG).show();
-                });
-    }
-
-    // *******************************************************************
-    // LÓGICA DE SELECCIÓN DE IMAGEN (abrirSelectorImagen)
-    // *******************************************************************
-
-    /**
-     * Abre el selector de archivos para seleccionar una imagen.
-     */
-    private void abrirSelectorImagen() {
-        Intent intent = new Intent();
-        intent.setType("image/*");
-        intent.setAction(Intent.ACTION_GET_CONTENT);
-        startActivityForResult(intent, PICK_IMAGE_REQUEST);
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
-        if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK
-                && data != null && data.getData() != null) {
-            imagenSeleccionadaUri = data.getData();
-            // Cargo la imagen seleccionada en el ImageView principal
-            ivImagenPrincipal.setImageURI(imagenSeleccionadaUri);
-        }
-    }
 }
-
