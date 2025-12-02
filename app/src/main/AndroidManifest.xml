@@ -36,7 +36,7 @@
             android:name=".RegistroActivity"
             android:exported="false" />
         <activity
-            android:name=".PublicarActivity"
+            android:name=".Publicar"
             android:exported="false" />
         <activity
             android:name=".MainActivity"

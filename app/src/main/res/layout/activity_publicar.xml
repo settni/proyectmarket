@@ -5,7 +5,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".PublicarActivity">
+    tools:context=".Publicar">
 
     <ScrollView
         android:layout_width="match_parent"
@@ -56,7 +56,7 @@
                 app:spanCount="4"
                 tools:listitem="@layout/item_galeria_imagen"/>
 
-            <!-- 1. Nombre del producto (Título) -->
+            <!-- Nombre del producto -->
             <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -71,7 +71,7 @@
                     android:maxLines="1" />
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- 2. Precio -->
+            <!-- Precio -->
             <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -86,7 +86,7 @@
                     android:maxLines="1" />
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- 3. Marca (opcional) -->
+            <!-- Marca -->
             <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -101,7 +101,6 @@
                     android:maxLines="1" />
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- 4. CONDICIÓN: CORREGIDO (ExposedDropdownMenu OutlinedBox) -->
             <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -119,7 +118,6 @@
 
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- 5. CATEGORÍA: CORREGIDO (ExposedDropdownMenu OutlinedBox) -->
             <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -137,7 +135,7 @@
 
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- 6. Dirección de retiro -->
+            <!-- Dirección de retiro -->
             <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -152,7 +150,7 @@
                     android:maxLines="2" />
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- 7. Descripción del producto -->
+            <!-- Descripción del producto -->
             <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -168,7 +166,7 @@
                     android:gravity="top" />
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- 8. Botón PUBLICAR PRODUCTO -->
+            <!-- Botón PUBLICAR PRODUCTO -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_publicar_producto"
                 android:layout_width="match_parent"
