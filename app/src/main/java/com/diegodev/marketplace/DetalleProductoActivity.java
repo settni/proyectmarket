@@ -408,9 +408,8 @@ public class DetalleProductoActivity extends AppCompatActivity {
             Class<?> chatActivityClass = Class.forName("com.diegodev.marketplace.ChatActivity");
             Intent intentChat = new Intent(DetalleProductoActivity.this, chatActivityClass);
 
-            // Parámetros necesarios: ID del receptor (vendedor) y el ID del producto
-            intentChat.putExtra("RECEIVER_ID", vendedorId);
-            intentChat.putExtra("PRODUCT_ID", productoId);
+            intentChat.putExtra("OTRO_USUARIO_ID", vendedorId); // <-- Esta clave es la que espera ChatActivity
+            intentChat.putExtra("PRODUCTO_ID", productoId);   // <-- Esta clave es correct
 
             startActivity(intentChat);
 

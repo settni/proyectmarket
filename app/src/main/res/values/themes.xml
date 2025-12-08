@@ -1,8 +1,15 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
     <style name="Base.Theme.MarketPlaces" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Propiedades del sistema para asegurar que la barra de estado tiene color y evita el solapamiento total -->
+        <item name="android:statusBarColor">?attr/colorPrimary</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <!-- Opcional: Color de la barra de navegación inferior -->
+        <item name="android:navigationBarColor">@android:color/black</item>
     </style>
+
     <style name="Theme.MarketPlaces" parent="Base.Theme.MarketPlaces" />
+
     <!-- Estilo para las etiquetas (Nombres, Email, etc.) -->
     <style name="PerfilLabel">
         <item name="android:layout_width">0dp</item>
@@ -21,8 +28,6 @@
         <item name="android:textSize">16sp</item>
         <item name="android:textColor">@android:color/darker_gray</item>
         <item name="android:gravity">end</item>
-        <!-- CORRECCIÓN: Usamos paddingTop y paddingBottom en lugar de paddingVertical para
-       compatibilidad con API < 26 -->
         <item name="android:paddingTop">4dp</item>
         <item name="android:paddingBottom">4dp</item>
     </style>

@@ -2,45 +2,42 @@ package com.diegodev.marketplace;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.view.MenuItem;
-import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
-
-import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.button.MaterialButton;
-import com.google.android.material.navigation.NavigationBarView;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 public class CuentaActivity extends AppCompatActivity {
 
-    // Vistas para los datos
     private TextView tvValorNombres;
     private TextView tvValorEmail;
     private TextView tvValorMiembro;
     private TextView tvValorTelefono;
     private TextView tvValorEstado;
 
-    // Botones de Opciones
     private MaterialButton btnEditarPerfil;
     private MaterialButton btnCambiarPassword;
     private MaterialButton btnEliminarAnuncios;
     private MaterialButton btnCerrarSesion;
 
-    // Elementos de Navegación Inferior
-    private BottomNavigationView bottomNav;
-    private FloatingActionButton fabPublicar;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_cuenta);
 
-        // 1. Configurar la Toolbar
+        // 1. Configurar la Toolbar para la navegación
         Toolbar toolbar = findViewById(R.id.toolbar_cuenta);
         setSupportActionBar(toolbar);
+
+        if (getSupportActionBar() != null) {
+            // Esto le indica a Android que muestre el ícono de navegación (flecha <-)
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
+            // Configurar el listener para el clic en la flecha de regreso (cerrar esta actividad)
+            toolbar.setNavigationOnClickListener(v -> finish());
+        }
 
         // 2. Inicializar Vistas de Información
         inicializarVistasInformacion();
@@ -51,15 +48,9 @@ public class CuentaActivity extends AppCompatActivity {
         // 4. Inicializar y Configurar Listeners para los Botones
         inicializarBotonesOpciones();
         configurarListenersBotones();
-
-
-
-        //Configuración de la Cabecera
-        configurarCabecera();
     }
 
     private void inicializarVistasInformacion() {
-        // Enlazar los IDs definidos en activity_cuenta.xml
         tvValorNombres = findViewById(R.id.tv_valor_nombres);
         tvValorEmail = findViewById(R.id.tv_valor_email);
         tvValorMiembro = findViewById(R.id.tv_valor_miembro);
@@ -68,7 +59,7 @@ public class CuentaActivity extends AppCompatActivity {
     }
 
     private void cargarDatosPerfil() {
-        //Se cargan los datos del usuario (Estos valores son estáticos por ahora)
+        // Se cargan los datos del usuario (Estos valores son estáticos por ahora)
         tvValorNombres.setText("Prueba Prueba Prueba Prueba");
         tvValorEmail.setText("Prueba@gmail.com");
         tvValorMiembro.setText("16/10/2023");
@@ -97,19 +88,11 @@ public class CuentaActivity extends AppCompatActivity {
 
         btnEliminarAnuncios.setOnClickListener(v -> {
             Toast.makeText(this, "Mostrar diálogo de confirmación para eliminar anuncios", Toast.LENGTH_SHORT).show();
-            // Lógica para mostrar AlertDialog
         });
 
         btnCerrarSesion.setOnClickListener(v -> {
             Toast.makeText(this, "Cerrando sesión...", Toast.LENGTH_SHORT).show();
             // Lógica para cerrar sesión (Firebase/SharedPreferences) y navegar a LoginActivity
         });
-
-    }
-    private void configurarCabecera() {
-        // Listener para el botón de retroceso (flecha <- )
-        ImageButton btnBack = findViewById(R.id.btnBack);
-        btnBack.setOnClickListener(v -> finish());
     }
 }
-

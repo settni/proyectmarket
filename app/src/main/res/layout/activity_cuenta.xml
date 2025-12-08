@@ -5,6 +5,9 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+
+    android:fitsSystemWindows="true"
+
     android:background="#F0F0F5"
     tools:context=".CuentaActivity">
 
@@ -14,14 +17,15 @@
         android:layout_height="wrap_content"
         android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
 
-        <!-- Botón de Retroceso (Flecha hacia atrás) -->
         <androidx.appcompat.widget.Toolbar
             android:id="@+id/toolbar_cuenta"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             android:background="?attr/colorPrimary"
-            app:title="   Cuenta"
-            app:titleTextColor="@android:color/white" />
+            app:title="Cuenta"
+            app:titleTextColor="@android:color/white"
+            app:navigationIcon="@drawable/ic_arrow_back"
+            />
     </com.google.android.material.appbar.AppBarLayout>
 
     <androidx.core.widget.NestedScrollView
@@ -32,18 +36,20 @@
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingBottom="80dp"> <TextView
-            android:id="@+id/tv_titulo_perfil"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
-            android:text="Perfil de usuario"
-            android:textSize="22sp"
-            android:textStyle="bold"
-            android:textColor="@android:color/black"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            android:paddingBottom="80dp">
+
+            <TextView
+                android:id="@+id/tv_titulo_perfil"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:text="Perfil de usuario"
+                android:textSize="22sp"
+                android:textStyle="bold"
+                android:textColor="@android:color/black"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="parent" />
 
             <androidx.cardview.widget.CardView
                 android:id="@+id/card_perfil"
@@ -127,7 +133,6 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:layout_marginHorizontal="16dp"
-                android:layout_marginTop="8dp"
                 app:layout_constraintTop_toBottomOf="@id/tv_seccion_opciones">
 
                 <com.google.android.material.button.MaterialButton
@@ -171,17 +176,4 @@
         </androidx.constraintlayout.widget.ConstraintLayout>
     </androidx.core.widget.NestedScrollView>
 
-    <ImageButton
-        android:id="@+id/btnBack"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:background="?attr/selectableItemBackgroundBorderless"
-        android:contentDescription="Volver"
-        android:src="@drawable/ic_arrow_back"
-        app:layout_anchor="@+id/appBarLayout"
-        app:layout_anchorGravity="start|center"
-        app:tint="@color/white" />
-
-
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
-

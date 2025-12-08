@@ -1,24 +1,51 @@
 package com.diegodev.marketplace;
 
+import android.content.Intent;
 import android.os.Bundle;
 
-import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
+
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 
 public class MainActivity extends AppCompatActivity {
+
+    private FirebaseAuth mAuth;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
-        setContentView(R.layout.activity_main);
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
-        });
+
+        // Inicializar Firebase Auth. Necesario para obtener el estado del usuario.
+        mAuth = FirebaseAuth.getInstance();
+
+        // No se llama a setContentView(R.layout.activity_main) porque esta actividad
+        // solo sirve para redirigir y no debe mostrar un diseño.
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        // Obtener el usuario actualmente logueado
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+
+        // Tomar la decisión de a dónde redirigir
+        Class<?> destinationActivity;
+
+        if (currentUser != null) {
+            // Caso 1: Usuario ya autenticado. Ir a la pantalla principal.
+            destinationActivity = HomeActivity.class;
+        } else {
+            // Caso 2: Usuario NO autenticado. Ir a la pantalla de inicio de sesión (LoginActivity).
+            destinationActivity = LoginActivity.class;
+        }
+
+        // Crear y lanzar la Intención
+        Intent intent = new Intent(MainActivity.this, destinationActivity);
+        startActivity(intent);
+
+        // Cerrar MainActivity para que no quede en el historial de navegación (back stack)
+        finish();
     }
 }
