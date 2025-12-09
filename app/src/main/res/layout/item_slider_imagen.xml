@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!--
+    ImageView que será cargado por el Adaptador (SliderImagenAdapter).
+    Es esencial que el ID sea 'iv_slider_image' para que el adaptador lo encuentre.
+    El scaleType 'centerCrop' asegura que la imagen llene el espacio de ViewPager2
+    sin distorsionarse.
+    -->
+    <ImageView
+        android:id="@+id/iv_slider_image"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:scaleType="centerCrop"
+        android:contentDescription="Imagen del producto en la galería"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

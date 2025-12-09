@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Círculo sólido para el indicador de página por defecto (no seleccionado) -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+
+    <!-- Color Gris Suave para el indicador inactivo -->
+    <solid android:color="#AAAAAA" />
+
+    <!-- Tamaño del punto: 8dp x 8dp (ligeramente más pequeño que el seleccionado) -->
+    <size
+        android:width="8dp"
+        android:height="8dp" />
+</shape>

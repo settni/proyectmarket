@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+
+    <!-- Fondo blanco para que la imagen de perfil destaque -->
+    <solid android:color="#FFFFFF" />
+
+    <!-- Bordes perfectamente circulares (radio grande para cualquier tamaño de ImageView) -->
+    <corners android:radius="50dp" />
+
+</shape>

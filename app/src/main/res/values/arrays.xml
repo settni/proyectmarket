@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Array de Categorías -->
+    <string-array name="categorias_array">
+        <item>Electrónica</item>
+        <item>Moda y Accesorios</item>
+        <item>Hogar y Jardín</item>
+        <item>Deportes y Ocio</item>
+        <item>Vehículos</item>
+        <item>Servicios</item>
+        <item>Otros</item>
+    </string-array>
+
+    <!-- Array de Condición del Producto-->
+    <string-array name="condicion_array">
+        <item>Nuevo</item>
+        <item>Usado (Como Nuevo)</item>
+        <item>Usado (Buen Estado)</item>
+        <item>Usado (Aceptable)</item>
+        <item>Para Reparar / Piezas</item>
+    </string-array>
+</resources>

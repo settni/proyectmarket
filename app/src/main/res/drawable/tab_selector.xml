@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Este selector define qué 'drawable' (diseño de punto) usar basado en el estado de la pestaña.
+    Debe estar ubicado en la carpeta res/drawable/.
+-->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!--
+        Estado Seleccionado (state_selected="true"):
+        Cuando la pestaña está activa, usa el diseño definido en tab_indicator_selected.xml
+    -->
+    <item android:state_selected="true" android:drawable="@drawable/tab_indicator_selected" />
+
+    <!--
+        Estado por Defecto (default):
+        Para todas las demás pestañas, usa el diseño definido en tab_indicator_default.xml
+    -->
+    <item android:drawable="@drawable/tab_indicator_default" />
+</selector>

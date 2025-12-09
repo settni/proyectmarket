@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+
+    <!-- Color de fondo para los mensajes recibidos (GRIS CLARO) -->
+    <solid android:color="#FFFFFF" />
+
+    <!-- Borde sutil para darle definición contra el fondo gris de la pantalla -->
+    <stroke
+        android:width="1dp"
+        android:color="#E0E0E0" />
+
+    <!-- Bordes redondeados. Usamos un radio más pequeño en la esquina inferior izquierda
+         para simular la punta de la burbuja que se pega a la parte inferior. -->
+    <corners
+        android:topLeftRadius="16dp"
+        android:topRightRadius="16dp"
+        android:bottomLeftRadius="4dp"
+        android:bottomRightRadius="16dp" />
+
+</shape>

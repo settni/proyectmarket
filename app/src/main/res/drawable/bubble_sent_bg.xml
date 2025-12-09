@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="rectangle">
+
+    <!-- Color de fondo para los mensajes enviados (AZUL PRIMARIO) -->
+    <solid android:color="@color/design_default_color_primary" />
+
+    <!-- Bordes redondeados. Usamos un radio más pequeño en la esquina inferior derecha 
+         para simular la punta de la burbuja que se pega a la parte inferior. -->
+    <corners
+        android:topLeftRadius="16dp"
+        android:topRightRadius="16dp"
+        android:bottomLeftRadius="16dp"
+        android:bottomRightRadius="4dp" />
+
+</shape>
