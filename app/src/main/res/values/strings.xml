@@ -1,7 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+
 <resources>
     <string name="app_name">proyectmarket</string>
 
-    <!-- Cadenas añadidas para los nuevos botones de contacto -->
+    <!-- Cadenas añadidas para los botones de contacto -->
     <string name="contactar_chat">Chatear</string>
     <string name="contactar_llamar">Llamar</string>
+
+    <!-- Cadenas añadidas para la accesibilidad (contentDescription) de item_galeria_imagen.xml -->
+    <string name="descripcion_miniatura">Miniatura de producto</string>
+    <string name="descripcion_eliminar_imagen">Eliminar imagen</string>
+
+
 </resources>

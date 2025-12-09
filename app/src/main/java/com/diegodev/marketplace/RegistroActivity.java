@@ -23,6 +23,7 @@ public class RegistroActivity extends AppCompatActivity {
     private TextInputEditText etNombre;
     private TextInputEditText etEmail;
     private TextInputEditText etPassword;
+    private TextInputEditText etTelefono; // NUEVO CAMPO
     private Button btnRegistro;
     private TextView tvIrLogin;
 
@@ -43,6 +44,7 @@ public class RegistroActivity extends AppCompatActivity {
         etNombre = findViewById(R.id.et_nombre);
         etEmail = findViewById(R.id.et_email);
         etPassword = findViewById(R.id.et_password);
+        etTelefono = findViewById(R.id.et_telefono); // Inicialización del nuevo campo
         btnRegistro = findViewById(R.id.btn_registro);
         tvIrLogin = findViewById(R.id.tv_link_login);
 
@@ -61,6 +63,7 @@ public class RegistroActivity extends AppCompatActivity {
     private void registrarUsuario() {
         final String nombre = etNombre.getText().toString().trim();
         final String email = etEmail.getText().toString().trim();
+        final String telefono = etTelefono.getText().toString().trim(); // Obtener el teléfono
         String password = etPassword.getText().toString().trim();
 
         // 1. Crear usuario en Firebase Authentication
@@ -71,7 +74,7 @@ public class RegistroActivity extends AppCompatActivity {
                         FirebaseUser user = mAuth.getCurrentUser();
                         if (user != null) {
                             // 2. Guardar datos adicionales en Realtime Database
-                            guardarDatosUsuario(user.getUid(), nombre, email);
+                            guardarDatosUsuario(user.getUid(), nombre, email, telefono); // Pasamos el teléfono
                         }
 
                         Toast.makeText(RegistroActivity.this, "¡Registro exitoso! Bienvenido.", Toast.LENGTH_SHORT).show();
@@ -85,11 +88,13 @@ public class RegistroActivity extends AppCompatActivity {
                 });
     }
 
-    private void guardarDatosUsuario(String uid, String nombre, String email) {
+    // MODIFICADO: Ahora recibe el teléfono y lo agrega al Map
+    private void guardarDatosUsuario(String uid, String nombre, String email, String telefono) {
         // Objeto Map para guardar los datos
         Map<String, Object> userData = new HashMap<>();
         userData.put("nombre", nombre);
         userData.put("email", email);
+        userData.put("telefono", telefono); // AÑADIDO: Número telefónico
         userData.put("fecha_creacion", System.currentTimeMillis()); // Marca de tiempo en milisegundos
 
         // Guardar en la ruta 'users/UID_DEL_USUARIO'
@@ -97,7 +102,6 @@ public class RegistroActivity extends AppCompatActivity {
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
                         // Los datos del perfil se guardaron correctamente en la base de datos
-                        // El Toast de éxito general ya se mostró en registrarUsuario()
                     } else {
                         // Error al guardar los datos del perfil
                         Toast.makeText(RegistroActivity.this, "Advertencia: No se pudieron guardar los datos del perfil.", Toast.LENGTH_LONG).show();
@@ -105,10 +109,12 @@ public class RegistroActivity extends AppCompatActivity {
                 });
     }
 
+    // MODIFICADO: Ahora valida el campo de teléfono
     private boolean validarCampos() {
         String nombre = etNombre.getText().toString().trim();
         String email = etEmail.getText().toString().trim();
         String password = etPassword.getText().toString().trim();
+        String telefono = etTelefono.getText().toString().trim(); // Obtener el teléfono
 
         boolean valido = true;
 
@@ -133,13 +139,20 @@ public class RegistroActivity extends AppCompatActivity {
             etPassword.setError(null);
         }
 
+        // VALIDACIÓN DEL TELÉFONO
+        if (TextUtils.isEmpty(telefono) || telefono.length() < 8) { // Mínimo 8 dígitos para ser un teléfono razonable
+            etTelefono.setError("El número de teléfono es obligatorio (mín. 8 dígitos).");
+            valido = false;
+        } else {
+            etTelefono.setError(null);
+        }
+
         return valido;
     }
     private void irALogin() {
-        // Asumiendo que existe una clase Login
+        // Asumiendo que existe una clase LoginActivity
         Intent intent = new Intent(RegistroActivity.this, LoginActivity.class);
         startActivity(intent);
         finish();
     }
 }
-

@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/white"
+    android:background="#F0F0F0"
     tools:context=".ChatActivity">
 
     <!-- 1. Cabecera (Header) -->
@@ -71,7 +71,7 @@
 
     </LinearLayout>
 
-    <!-- 2. Área de Entrada de Mensajes (botón de imagen) -->
+    <!-- 2. Área de Entrada de Mensajes (Corregida) -->
     <LinearLayout
         android:id="@+id/layout_input"
         android:layout_width="0dp"
@@ -84,11 +84,12 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
-        <!-- Caja de Texto para escribir el mensaje -->
+        <!-- Caja de Texto para escribir el mensaje (CORREGIDA LA SINTAXIS Y ALTURA) -->
         <EditText
             android:id="@+id/editTextMensaje"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:minHeight="48dp"
             android:layout_weight="1"
             android:hint="Escriba algo"
             android:maxLines="4"
@@ -97,9 +98,10 @@
             android:imeOptions="actionDone"
             android:inputType="textCapSentences|textMultiLine"
             android:textColor="@color/black"
-            android:textColorHint="#999999"/>
+            android:textColorHint="#999999"
+            />
 
-        <!-- Botón para Adjuntar Imagen (Icono de Galería) -->
+        <!-- Botón para Adjuntar Imagen -->
         <ImageButton
             android:id="@+id/btnAttachImage"
             android:layout_width="48dp"
@@ -112,7 +114,7 @@
             android:scaleType="fitCenter"
             android:padding="12dp"/>
 
-        <!-- Botón de Enviar (Icono de Avión de Papel) -->
+        <!-- Botón de Enviar -->
         <ImageButton
             android:id="@+id/btnEnviar"
             android:layout_width="48dp"
@@ -127,12 +129,12 @@
 
     </LinearLayout>
 
-    <!-- 3. RecyclerView para mostrar los mensajes -->
+    <!-- 3. RecyclerView para mostrar los mensajes (Fondo gris claro) -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerViewChat"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:background="@color/white"
+        android:background="#F0F0F0"
         android:paddingTop="8dp"
         android:clipToPadding="false"
         app:layout_constraintTop_toBottomOf="@id/layout_header"
@@ -143,4 +145,3 @@
         tools:itemCount="20"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
-
