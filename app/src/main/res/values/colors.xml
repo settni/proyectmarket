@@ -1,5 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- Colores base originales -->
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="gray_700">#616161</color>
+
+    <!-- PALETA MODERNA (MATERIAL 3) -->
+
+    <!-- Azul Vibrante y Profesional (#006DB6) -->
+    <color name="md_theme_light_primary">#006DB6</color>
+    <!-- Color usado sobre el Primary (ej: texto de botones) -->
+    <color name="md_theme_light_onPrimary">#FFFFFF</color>
+    <!-- Contenedor primario (azul muy claro para barras o fondos de encabezados) -->
+    <color name="md_theme_light_primaryContainer">#D0E4FF</color>
+    <!-- Color usado sobre el Primary Container -->
+    <color name="md_theme_light_onPrimaryContainer">#001F3C</color>
+
+    <!-- Color de fondo general (gris muy claro para evitar la fatiga visual) -->
+    <color name="md_theme_light_background">#F5F7FA</color>
+    <color name="md_theme_light_surface">#FFFFFF</color>
+    <!-- Color para el texto en el fondo -->
+    <color name="md_theme_light_onSurface">#1A1C1E</color>
+
+    <!-- Color de acento/secundario (Gris moderno para el resto de elementos) -->
+    <color name="md_theme_light_secondary">#526070</color>
+
+    <!-- Color para mensajes de error -->
+    <color name="md_theme_light_error">#BA1A1A</color>
 </resources>

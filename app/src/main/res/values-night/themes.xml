@@ -1,34 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
+
+    <!-- Base application theme - Se le asignan los colores de la paleta moderna -->
     <style name="Base.Theme.MarketPlaces" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Propiedades del sistema para asegurar que la barra de estado tiene color y evita el solapamiento total -->
-        <item name="android:statusBarColor">?attr/colorPrimary</item>
+
+        <!-- COLORES (Referenciados desde el nuevo colors.xml) -->
+        <item name="colorPrimary">@color/md_theme_light_primary</item>
+        <item name="colorOnPrimary">@color/md_theme_light_onPrimary</item>
+        <item name="colorPrimaryContainer">@color/md_theme_light_primaryContainer</item>
+        <item name="android:colorBackground">@color/md_theme_light_background</item>
+        <item name="colorSurface">@color/md_theme_light_surface</item>
+        <item name="colorOnSurface">@color/md_theme_light_onSurface</item>
+
+        <!-- PANTALLA Y SISTEMA -->
+        <!-- Barra de estado con color principal Container (azul muy claro) -->
+        <item name="android:statusBarColor">@color/md_theme_light_primaryContainer</item>
+        <!-- Íconos de la barra de estado en color oscuro (para fondo claro) -->
         <item name="android:windowLightStatusBar">true</item>
-        <!-- Opcional: Color de la barra de navegación inferior -->
-        <item name="android:navigationBarColor">@android:color/black</item>
+        <!-- Color de la barra de navegación inferior (fondo general) -->
+        <item name="android:navigationBarColor">@color/md_theme_light_background</item>
+
+        <!-- BORDES REDONDEADOS Y SOMBRAS (Material 3) -->
+
+        <!-- Forma para componentes pequeños (Botones, Chips, Input) - 8dp -->
+        <item name="shapeAppearanceSmallComponent">@style/ShapeAppearance.App.Rounded_8</item>
+        <!-- Forma para componentes medianos (CardView, Dialogs) - 12dp -->
+        <item name="shapeAppearanceMediumComponent">@style/ShapeAppearance.App.Rounded_12</item>
+
     </style>
 
     <style name="Theme.MarketPlaces" parent="Base.Theme.MarketPlaces" />
 
-    <!-- Estilo para las etiquetas (Nombres, Email, etc.) -->
+    <!-- DEFINICIONES DE FORMA (Esquinas redondeadas) -->
+
+    <style name="ShapeAppearance.App.Rounded_8" parent="ShapeAppearance.Material3.SmallComponent">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">8dp</item>
+    </style>
+
+    <style name="ShapeAppearance.App.Rounded_12" parent="ShapeAppearance.Material3.MediumComponent">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">12dp</item>
+    </style>
+
+
+    <!-- ESTILOS DE PERFIL (CORREGIDOS: Se eliminó el parent Widget.Material3.TextView) -->
+
+    <!-- Estilo para las etiquetas (Nombres, Email, etc.) - Texto Negro/OnSurface -->
     <style name="PerfilLabel">
         <item name="android:layout_width">0dp</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:layout_columnWeight">0.3</item>
         <item name="android:textSize">16sp</item>
         <item name="android:textStyle">bold</item>
-        <item name="android:paddingTop">4dp</item>
-        <item name="android:paddingBottom">4dp</item>
+        <item name="android:paddingTop">6dp</item>
+        <item name="android:paddingBottom">6dp</item>
+        <item name="android:textColor">@color/md_theme_light_onSurface</item>
     </style>
-    <!-- Estilo para los valores (Prueba Prueba, Prueba@gmail.com, etc.) -->
+
+    <!-- Estilo para los valores (Prueba Prueba, Prueba@gmail.com, etc.) - Texto Gris Suave/Secondary -->
     <style name="PerfilValor">
         <item name="android:layout_width">0dp</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:layout_columnWeight">0.7</item>
         <item name="android:textSize">16sp</item>
-        <item name="android:textColor">@android:color/darker_gray</item>
+        <!-- Usamos un color gris moderno para la suavidad visual -->
+        <item name="android:textColor">@color/gray_700</item>
         <item name="android:gravity">end</item>
-        <item name="android:paddingTop">4dp</item>
-        <item name="android:paddingBottom">4dp</item>
+        <item name="android:paddingTop">6dp</item>
+        <item name="android:paddingBottom">6dp</item>
     </style>
 </resources>
