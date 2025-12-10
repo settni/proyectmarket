@@ -18,8 +18,6 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
-import java.util.HashMap;
-
 public class CuentaActivity extends AppCompatActivity {
 
     private static final String TAG = "CuentaActivity";
@@ -30,7 +28,7 @@ public class CuentaActivity extends AppCompatActivity {
     private TextView tvValorMiembro;
     private TextView tvValorTelefono;
     private TextView tvValorEstado;
-    private TextView tvValorNacimiento; // Agregamos la vista para la fecha de nacimiento
+    private TextView tvValorNacimiento;
 
     // Botones
     private MaterialButton btnEditarPerfil;
@@ -85,7 +83,7 @@ public class CuentaActivity extends AppCompatActivity {
         tvValorMiembro = findViewById(R.id.tv_valor_miembro);
         tvValorTelefono = findViewById(R.id.tv_valor_telefono);
         tvValorEstado = findViewById(R.id.tv_valor_estado);
-        tvValorNacimiento = findViewById(R.id.tv_valor_nacimiento); // Inicializar la nueva vista
+        tvValorNacimiento = findViewById(R.id.tv_valor_nacimiento);
     }
 
     /**
@@ -94,16 +92,20 @@ public class CuentaActivity extends AppCompatActivity {
     private void cargarDatosPerfilFirebase() {
         if (currentUser == null) return;
 
-        // Mostrar el email del usuario logueado por Firebase Auth (siempre disponible)
+        // --- Carga de datos de Firebase AUTH (siempre disponibles) ---
+
         tvValorEmail.setText(currentUser.getEmail() != null ? currentUser.getEmail() : "Email no disponible");
 
-        // La fecha de creación es la fecha de membresía
-        long creacionTimestamp = currentUser.getMetadata() != null ? currentUser.getMetadata().getCreationTimestamp() : 0;
-        String fechaMiembro = android.text.format.DateFormat.format("dd/MM/yyyy", creacionTimestamp).toString();
-        tvValorMiembro.setText(fechaMiembro);
+        // Determinamos el estado de cuenta a partir de si el email está verificado o no
+        String estadoCuenta = currentUser.isEmailVerified() ? "Verificado" : "Pendiente de verificación";
+        tvValorEstado.setText(estadoCuenta);
+
+
+        // --- Carga de datos de Realtime Database (CORRECCIÓN: Usamos "users") ---
 
         // Referencia a la base de datos para obtener el resto de los datos (nombre, teléfono, etc.)
-        userRef = FirebaseDatabase.getInstance().getReference("usuarios").child(currentUser.getUid());
+        // CORRECCIÓN: Apuntamos al nodo "users" para coincidir con la base de datos.
+        userRef = FirebaseDatabase.getInstance().getReference("users").child(currentUser.getUid());
 
         userRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -111,19 +113,42 @@ public class CuentaActivity extends AppCompatActivity {
                 if (snapshot.exists()) {
                     // Carga y establece los valores desde la base de datos
                     String nombre = snapshot.child("nombre").getValue(String.class);
-                    String telefono = snapshot.child("telefono").getValue(String.class);
-                    String fechaNac = snapshot.child("fechaNacimiento").getValue(String.class); // Asumiendo este campo
+                    // Usamos la clave de la base de datos que sí existe: fecha_creacion
+                    Long creacionTimestampDB = snapshot.child("fecha_creacion").getValue(Long.class);
 
-                    tvValorNombres.setText(nombre != null ? nombre : "Falta Nombre");
+                    // Estos campos pueden faltar o no existir
+                    String telefono = snapshot.child("telefono").getValue(String.class);
+                    String fechaNac = snapshot.child("fechaNacimiento").getValue(String.class);
+
+                    // 1. Actualiza Nombre
+                    if (nombre != null) {
+                        tvValorNombres.setText(nombre);
+                    } else {
+                        tvValorNombres.setText("Falta Nombre");
+                    }
+
+                    // 2. Actualiza Fecha de Miembro (Usando la DB como fallback si falla el Auth)
+                    if (creacionTimestampDB != null) {
+                        String fechaMiembro = android.text.format.DateFormat.format("dd/MM/yyyy", creacionTimestampDB).toString();
+                        tvValorMiembro.setText(fechaMiembro);
+                    } else {
+                        // Si no está en DB, usa Auth como fallback (código original)
+                        long creacionTimestampAuth = currentUser.getMetadata() != null ? currentUser.getMetadata().getCreationTimestamp() : 0;
+                        String fechaMiembroAuth = android.text.format.DateFormat.format("dd/MM/yyyy", creacionTimestampAuth).toString();
+                        tvValorMiembro.setText(fechaMiembroAuth);
+                    }
+
+                    // 3. Actualiza Teléfono y Fecha de Nacimiento (Aparecerán "No disponible" hasta que se editen)
                     tvValorTelefono.setText(telefono != null ? telefono : "No disponible");
                     tvValorNacimiento.setText(fechaNac != null ? fechaNac : "No especificado");
 
-                    // El estado se puede hardcodear si es solo "Verificado" al estar logueado
-                    tvValorEstado.setText("Verificado");
-
                 } else {
-                    Log.w(TAG, "No se encontraron datos de perfil en el nodo de Firebase.");
+                    // Si el nodo del perfil no existe, muestra valores por defecto en todos los campos
+                    Log.w(TAG, "No se encontraron datos de perfil en el nodo de Firebase para UID: " + currentUser.getUid());
+
                     tvValorNombres.setText("Usuario Desconocido");
+                    tvValorTelefono.setText("No disponible");
+                    tvValorNacimiento.setText("No especificado");
                 }
             }
 
@@ -160,30 +185,13 @@ public class CuentaActivity extends AppCompatActivity {
         });
 
         btnCerrarSesion.setOnClickListener(v -> {
-            // ********************************************
-            // INICIO: LÓGICA DE CIERRE DE SESIÓN CORREGIDA
-            // ********************************************
-
-            // 1. Cerrar sesión en Firebase Auth
+            // Lógica de cierre de sesión
             firebaseAuth.signOut();
-
-            // 2. Informar al usuario
             Toast.makeText(this, "Sesión cerrada con éxito.", Toast.LENGTH_LONG).show();
-
-            // 3. Redirigir a la pantalla de inicio de sesión (Login/MainActivity)
-            // Asumo que tu pantalla de inicio es LoginActivity
             Intent intent = new Intent(CuentaActivity.this, LoginActivity.class);
-
-            // Flags para limpiar la pila de actividades y que el usuario no pueda volver atrás
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
             startActivity(intent);
-
-            // Finalizar la actividad actual
             finish();
-
-            // ********************************************
-            // FIN: LÓGICA DE CIERRE DE SESIÓN CORREGIDA
-            // ********************************************
         });
     }
 }
