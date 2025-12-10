@@ -18,6 +18,7 @@ import com.google.android.material.navigation.NavigationBarView;
 
 import com.diegodev.marketplace.adapter.ProductoAdapter;
 import com.diegodev.marketplace.model.Producto;
+import com.diegodev.marketplace.ListaChatsActivity;
 import com.diegodev.marketplace.R;
 
 
@@ -95,7 +96,7 @@ public class HomeActivity extends AppCompatActivity {
 
             if (itemId == R.id.navigation_chats) {
                 Toast.makeText(HomeActivity.this, "Abriendo Chats (Semana 6.1)", Toast.LENGTH_SHORT).show();
-                intent = new Intent(HomeActivity.this, ChatActivity.class);
+                intent = new Intent(HomeActivity.this, ListaChatsActivity.class);
                 startActivity(intent);
                 return true;
             } else if (itemId == R.id.navigation_account) {

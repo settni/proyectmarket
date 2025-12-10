@@ -77,20 +77,18 @@ public class ChatActivity extends AppCompatActivity {
         otroUserId = getIntent().getStringExtra("OTRO_USUARIO_ID");
         productoId = getIntent().getStringExtra("PRODUCTO_ID");
 
-        currentUserId = currentUser.getUid();
-        otroUserId = getIntent().getStringExtra("OTRO_USUARIO_ID");
-        productoId = getIntent().getStringExtra("PRODUCTO_ID");
+        // CORRECCIÓN: Si el productoId es nulo, le asignamos un valor por defecto
+        if (productoId == null) {
+            productoId = "no_producto";
+        }
 
         // *******************************************************************
-        // INICIO DE LA CORRECCIÓN CLAVE
-        // La conversación solo es posible si se conoce al otro usuario.
-        // El ProductoId es un contexto y puede ser nulo.
+        // VALIDACIÓN CLAVE
         if (otroUserId == null || otroUserId.isEmpty()) {
             Toast.makeText(this, "Error: El ID del otro usuario es obligatorio para iniciar el chat.", Toast.LENGTH_LONG).show();
             finish();
             return;
         }
-        // FIN DE LA CORRECCIÓN CLAVE
         // *******************************************************************
 
         // 3. Inicialización de Vistas
@@ -121,19 +119,18 @@ public class ChatActivity extends AppCompatActivity {
         // Listener para el botón de retroceso
         btnBack.setOnClickListener(v -> finish());
 
-        // Cargar nombre del otro usuario
-        userRef = FirebaseDatabase.getInstance().getReference("usuarios").child(otroUserId);
+        // CORRECCIÓN: Usamos "users" en lugar de "usuarios"
+        userRef = FirebaseDatabase.getInstance().getReference("users").child(otroUserId);
         userRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot snapshot) {
                 if (snapshot.exists() && snapshot.child("nombre").exists()) {
                     String nombre = snapshot.child("nombre").getValue(String.class);
                     tvNombreContacto.setText(nombre != null ? nombre : "Usuario Desconocido");
-                    // Aquí podrías cargar la foto de perfil (imgProfile)
                 } else {
                     tvNombreContacto.setText("Usuario Desconocido");
                 }
-                tvEstadoContacto.setText("Viendo Producto..."); // Estado por defecto
+                tvEstadoContacto.setText("Conectado"); // Estado por defecto
             }
 
             @Override
@@ -162,7 +159,6 @@ public class ChatActivity extends AppCompatActivity {
 
     /**
      * Crea un ID de chat canónico, ordenando los IDs de usuario.
-     * Esto asegura que la conversación entre A y B esté siempre en el mismo nodo.
      * ID de Chat: {idMenor}_{idMayor}_{productoId}
      */
     private String generarChatId(String uid1, String uid2, String pId) {
@@ -188,13 +184,13 @@ public class ChatActivity extends AppCompatActivity {
         // 1. Obtener referencia a la colección de mensajes para este chat
         chatRef = FirebaseDatabase.getInstance().getReference("chats").child(chatId).child("mensajes");
 
-        // 2. Crear el objeto Mensaje (solo con los datos que queremos enviar)
+        // 2. Crear el objeto Mensaje
         Mensaje nuevoMensaje = new Mensaje();
         nuevoMensaje.setRemitenteId(currentUserId);
         nuevoMensaje.setContenido(texto);
         nuevoMensaje.setChatId(chatId);
         nuevoMensaje.setProductoId(productoId);
-        // El timestamp lo establecerá Firebase automáticamente usando getTimestampServer() del modelo.
+        // Usaremos ServerValue.TIMESTAMP para la hora exacta del servidor en el modelo.
 
         // 3. Empujar el nuevo mensaje a Firebase
         String mensajeId = chatRef.push().getKey();
@@ -203,12 +199,38 @@ public class ChatActivity extends AppCompatActivity {
                     .addOnCompleteListener(task -> {
                         if (task.isSuccessful()) {
                             etMensaje.setText(""); // Limpiar input al enviar
+                            // **********************************************
+                            // PASO CLAVE: Guardar la conversación en la lista de ambos usuarios
+                            guardarConversacionEnLista(currentUserId, otroUserId, productoId, texto);
+                            guardarConversacionEnLista(otroUserId, currentUserId, productoId, texto);
+                            // **********************************************
                         } else {
                             Toast.makeText(ChatActivity.this, "Error al enviar.", Toast.LENGTH_SHORT).show();
                             Log.e(TAG, "Fallo al enviar mensaje: " + task.getException().getMessage());
                         }
                     });
         }
+    }
+
+    /**
+     * Guarda un registro de la conversación en el nodo 'ListaChats' para ambos usuarios.
+     * Este es el índice que se usará para mostrar la bandeja de entrada.
+     */
+    private void guardarConversacionEnLista(String usuarioPrincipalId, String companeroId, String pId, String ultimoMensaje) {
+        DatabaseReference listaChatsRef = FirebaseDatabase.getInstance().getReference("ListaChats")
+                .child(usuarioPrincipalId)
+                .child(companeroId + "_" + pId); // Clave única para la conversación
+
+        Map<String, Object> conversacionData = new HashMap<>();
+        conversacionData.put("otroUserId", companeroId);
+        conversacionData.put("productoId", pId);
+        conversacionData.put("ultimoMensaje", ultimoMensaje);
+        conversacionData.put("timestamp", ServerValue.TIMESTAMP); // Sello de tiempo de la última actividad
+
+        listaChatsRef.updateChildren(conversacionData)
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Fallo al indexar conversación para ListaChats: " + e.getMessage());
+                });
     }
 
     /**
@@ -233,19 +255,13 @@ public class ChatActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onChildChanged(@NonNull DataSnapshot snapshot, String previousChildName) {
-                // Útil si permitieras editar mensajes
-            }
+            public void onChildChanged(@NonNull DataSnapshot snapshot, String previousChildName) { /* ... */ }
 
             @Override
-            public void onChildRemoved(@NonNull DataSnapshot snapshot) {
-                // Útil si se permite eliminar mensajes
-            }
+            public void onChildRemoved(@NonNull DataSnapshot snapshot) { /* ... */ }
 
             @Override
-            public void onChildMoved(@NonNull DataSnapshot snapshot, String previousChildName) {
-                // No se usa en chats simples
-            }
+            public void onChildMoved(@NonNull DataSnapshot snapshot, String previousChildName) { /* ... */ }
 
             @Override
             public void onCancelled(@NonNull DatabaseError error) {
