@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Un fondo con borde para indicar una imagen faltante o placeholder. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Fondo Blanco o Gris Claro -->
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="#F5F5F5"/>
+        </shape>
+    </item>
+    <!-- Borde Punteado Gris Claro -->
+    <item>
+        <shape>
+            <stroke android:width="1dp" android:color="#BDBDBD" android:dashWidth="5dp" android:dashGap="3dp"/>
+        </shape>
+    </item>
+    <!-- Ícono de imagen en el centro (usando ic_gallery) -->
+    <item android:drawable="@drawable/ic_gallery"
+        android:gravity="center"
+        android:left="20dp"
+        android:right="20dp"
+        android:top="20dp"
+        android:bottom="20dp"/>
+</layer-list>

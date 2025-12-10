@@ -1,0 +1,10 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- Path principal que dibuja el marco de la imagen y el paisaje (montaña y sol/punto) -->
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M22,16V4c0,-1.1 -0.9,-2 -2,-2H8c-1.1,0 -2,0.9 -2,2v12c0,1.1 0.9,2 2,2h12c1.1,0 2,-0.9 2,-2zM11.17,10.67l2.25,3 3,-3.83 4,5H8l3.17,-4.17zM16,8c-1.1,0 -2,0.9 -2,2s0.9,2 2,2 2,-0.9 2,-2 -0.9,-2 -2,-2zM2,20h16v2H2c-1.1,0 -2,-0.9 -2,-2V6h2v14z"/>
+</vector>

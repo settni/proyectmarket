@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Estado Presionado: Color más oscuro para el efecto de clic -->
+    <item android:state_pressed="true">
+        <shape android:shape="rectangle">
+            <solid android:color="#0D47A1"/> <!-- Azul oscuro -->
+            <corners android:radius="8dp"/>
+        </shape>
+    </item>
+
+    <!-- Estado Normal -->
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="#2196F3"/> <!-- Azul estándar -->
+            <corners android:radius="8dp"/>
+        </shape>
+    </item>
+</selector>
